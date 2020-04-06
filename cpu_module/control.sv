@@ -1,11 +1,9 @@
-module control(clk, rst_n, opcode, Branch, MemRead, MemWrite, MemToReg, RegWrite, H_int, E_int, D_int);
+module control(clk, rst_n, opcode, Branch, MemWrite, MemToReg, RegWrite, ALUSrc, H_int, E_int, D_int);
 
 input clk, rst_n;
 input [4:0] opcode;
 
-output reg Branch, MemRead, MemWrite, MemToReg, RegWrite, H_int, E_int, D_int;
-
-wire special;
+output reg Branch, MemWrite, MemToReg, RegWrite, ALUSrc, H_int, E_int, D_int;
 
 // Branch 
 always @ (opcode[4:3]) begin
@@ -15,11 +13,11 @@ always @ (opcode[4:3]) begin
     endcase
 end
 
-// MemRead
+// MemToReg
 always @ (opcode) begin
     case (opcode)
-        5'b01101 : MemRead = rst_n ? 1'b1 : 1'b0;
-        default : MemRead = 1'b0;
+        5'b01101 : MemToReg = rst_n ? 1'b1 : 1'b0;
+        default : MemToReg = 1'b0;
     endcase
 end
 
@@ -30,9 +28,6 @@ always @ (opcode) begin
         default : MemWrite = 1'b0;
     endcase
 end
-
-// MemToReg
-assign MemToReg = MemRead;
 
 //RegWrite
 always @ (opcode) begin
@@ -46,6 +41,14 @@ always @ (opcode) begin
     endcase
 end
 
+// ALUSrc 0 means RT; 1 means imm
+always @ (opcode) begin
+    case (opcode)
+        5'b00110 : ALUSrc =  1'b0;
+	5'b00111 : ALUSrc = 1'b0;
+        default : ALUSrc = rst_n ? 1'b1 : 1'b0;
+    endcase
+end
 // H_int
 always @ (opcode) begin
     case (opcode)
