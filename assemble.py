@@ -1,27 +1,51 @@
 import os
 import sys
-'''
-  TODO: negative immediates
-'''
-def encodeString(string):
+
+def twosComp(str):
+	n = len(str)
+	i = n-1
+	while(i >= 0):
+		if(str[i] == '1'):
+			break
+		i = i - 1
+	if(i == -1):
+		return '1' + str
+	k = i -1
+	while(k >= 0):
+		if(str[k] == '1'):
+			str = list(str)
+			str[k] = '0'
+			str = ''.join(str)
+		else:
+			str = list(str)
+			str[k] = '1'
+			str = ''.join(str)
+		k = k-1
+	return str
+
+
+def asciiToBin(string):
 	result = ""
 	for char in string:
 		result = result + "{0:b}".format( ord(char) ).zfill(16)
 	return result
 
+def decimalToBin(num, num_bits):
+	return "{0:b}".format(num).zfill(num_bits)
 
 def immToBin(imm, format):
 	if(imm[0] != "#"):
 		raise Exception("invalid immediate argument")
 		return ""
-	elif(imm[1:].isdigit()):
-		if (format == "I" and int(imm[1:]) < 32):
-              		return "{0:b}".format(int(imm[1:])).zfill(5)
-                elif (format == "J" and int(imm[1:]) < 1024):
-              		return "{0:b}".format(int(imm[1:])).zfill(11)
-		else:
-			raise Exception("invalid immediate argument")
-			return ""
+	if (format == "I"):
+	   if(imm[1:].isdigit() and int(imm[1:]) < 32):
+			return decimalToBin(int(imm[1:]),5)
+	elif (format == "J"):
+		if(imm[1:].isdigit() and int(imm[1:]) < 511):
+			return decimalToBin(int(imm[1:]),11)
+		if(imm[1] == "-" and int(imm[2:]) < 511):
+			return twosComp(decimalToBin(int(imm[2:]),11))
+
 def getRegNum(reg):
 	if(reg.lower() == "r0"): return "000"
 	elif(reg.lower() == "r1"): return "001"
@@ -34,7 +58,6 @@ def getRegNum(reg):
 	else: 
 		raise Exception("Invalid register argument")
 		return ""
-
 
 instruction = {
 	"HALT": 
@@ -199,18 +222,18 @@ file_out = file_out.split(".")[0] + ".out"
 f = open(file_out, "w") 
 
 for line in contents:
-        line_output = ""
-        line_num = line_num + 1
+	line_output = ""
+	line_num = line_num + 1
 	line = line.split()
 	try:
 		if (len(line) > 0):
-     			line_output = line_output + instruction[line[0].upper()]["opcode"]
+			line_output = line_output + instruction[line[0].upper()]["opcode"]
 			if (instruction[line[0].upper()]["format"] == "R"):  #Parse R format
 				line_output = line_output + getRegNum(line[1].split(",")[0]) + getRegNum(line[2].split(",")[0]) + getRegNum(line[3].split(",")[0])
 				line_output = line_output + instruction[line[0].upper()]["function"] # Append function bits
-
+	
 			if (instruction[line[0].upper()]["format"] == "I"):  #Parse I format
-			        if (line[0].upper() == "MOV"):
+				if (line[0].upper() == "MOV"):
 					line_output = line_output + getRegNum(line[1].split(",")[0]) + getRegNum(line[2].split(",")[0]) + "00000"	
 				else:
 					line_output = line_output + getRegNum(line[1].split(",")[0]) + getRegNum(line[2].split(",")[0]) + immToBin(line[3],"I")
@@ -223,15 +246,16 @@ for line in contents:
 		
 			if (instruction[line[0].upper()]["format"] == "S"):  #Parse S format
 				if (line[0].upper() == "HASH"):
-					line_output = line_output + "{0:b}".format(int(hash_index)).zfill(11)
+					line_output = line_output + decimalToBin(int(hash_index),11)
 					hash_index = hash_index + 1
 				if (line[0].upper() == "ENC"):
-					line_output = line_output + "{0:b}".format(int(enc_index)).zfill(11)
-					hash_index = enc_index + 1
+					line_output = line_output + decimalToBin(int(enc_index),11)
+					enc_index = enc_index + 1
 				if (line[0].upper() == "DEC"):
-					line_output = line_output + "{0:b}".format(int(dec_index)).zfill(11)
-					hash_index = dec_index + 1
-				line_output = line_output + " " + encodeString(" ".join(line[1:]))
+					line_output = line_output + decimalToBin(int(dec_index),11)
+					dec_index = dec_index + 1
+				line_output = line_output + " " + asciiToBin(" ".join(line[1:]))
+		if(line_output != ""):
 			f.write(line_output + "\n")
 	except:
 		print("error on line " + str(line_num))
