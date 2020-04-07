@@ -164,7 +164,7 @@ module gp_cpu_tb();
    assign MemAddress = DUT.ExMem_alu_out;
 
    // Data to be written to Dmem 
-   assign MemData = DUT.ExMem_alu_in2;
+   assign MemData = DUT.ExMem_val_to_write;
 
    
 endmodule
