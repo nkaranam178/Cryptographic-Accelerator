@@ -267,7 +267,8 @@ for line in contents:
             dec_index = dec_index + 1
          line_output = line_output + " " + asciiToBin(" ".join(line[1:]))
    if(line_output != ""):
-      f.write(line_output + "\n")
+      print(line_output)
+    # f.write(line_output + "\n")
 #   except:
 #      print("error on line " + str(line_num))
 #      print(" ".join(line))
