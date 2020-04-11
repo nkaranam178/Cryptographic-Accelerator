@@ -48,12 +48,17 @@ def immToBin(imm, format):
          return twosComp(decimalToBin(int(imm[2:]),11))
 
 def pad_msg(msg):
-   result =  msg + "1"
-   msg_length = len(msg)*8
-   msg_length = decimalToBin(msg_length,64)
-   while(len(result) < 448):
-      result = result + "0"
-   result = result + msg_length
+   if(line[0].upper() == "HASH"):
+      result =  msg + "1"
+      msg_length = len(msg)
+      msg_length = decimalToBin(msg_length,64)
+      while(len(result) < 448):
+         result = result + "0"
+      result = result + msg_length
+   else:
+      result = msg
+      while(len(result) < 128):
+         result = "0" + result
    return result
 
 def getRegNum(reg):
