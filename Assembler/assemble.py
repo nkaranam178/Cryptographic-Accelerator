@@ -1,74 +1,6 @@
 import os
 import sys
 
-def twosComp(str):
-   n = len(str)
-   i = n-1
-   while(i >= 0):
-      if(str[i] == '1'):
-         break
-      i = i - 1
-   if(i == -1):
-      return '1' + str
-   k = i -1
-   while(k >= 0):
-      if(str[k] == '1'):
-         str = list(str)
-         str[k] = '0'
-         str = ''.join(str)
-      else:
-         str = list(str)
-         str[k] = '1'
-         str = ''.join(str)
-      k = k-1
-   return str
-
-
-def asciiToBin(string):
-   result = ""
-   for char in string:
-      result = result + "{0:b}".format( ord(char) ).zfill(8)
-   return pad_msg(result)
-
-
-def decimalToBin(num, num_bits):
-   return "{0:b}".format(num).zfill(num_bits)
-
-def immToBin(imm, format):
-   if(imm[0] != "#"):
-      raise Exception("invalid immediate argument")
-      return ""
-   if (format == "I"):
-      if(imm[1:].isdigit() and int(imm[1:]) < 32):
-         return decimalToBin(int(imm[1:]),5)
-   elif (format == "J"):
-      if(imm[1:].isdigit() and int(imm[1:]) < 511):
-         return decimalToBin(int(imm[1:]),11)
-      if(imm[1] == "-" and int(imm[2:]) < 511):
-         return twosComp(decimalToBin(int(imm[2:]),11))
-
-def pad_msg(msg):
-   result =  msg + "1"
-   msg_length = len(msg)*8
-   msg_length = decimalToBin(msg_length,64)
-   while(len(result) < 448):
-      result = result + "0"
-   result = result + msg_length
-   return result
-
-def getRegNum(reg):
-   if(reg.lower() == "r0"): return "000"
-   elif(reg.lower() == "r1"): return "001"
-   elif(reg.lower() == "r2"): return "010"
-   elif(reg.lower() == "r3"): return "011"
-   elif(reg.lower() == "r4"): return "100"
-   elif(reg.lower() == "r5"): return "101"
-   elif(reg.lower() == "r6"): return "110"
-   elif(reg.lower() == "r7"): return "111"
-   else: 
-      raise Exception("Invalid register argument")
-      return ""
-
 instruction = {
    "HALT": 
    {
@@ -213,6 +145,92 @@ instruction = {
    }
 }
 
+# Converts a string of binary to 2's complement
+def twosComp(str):
+   n = len(str)
+   i = n-1
+   while(i >= 0):
+      if(str[i] == '1'):
+         break
+      i = i - 1
+   if(i == -1):
+      return '1' + str
+   k = i -1
+   while(k >= 0):
+      if(str[k] == '1'):
+         str = list(str)
+         str[k] = '0'
+         str = ''.join(str)
+      else:
+         str = list(str)
+         str[k] = '1'
+         str = ''.join(str)
+      k = k-1
+   return str
+
+# Converts an ASCII string to binary
+def asciiToBin(string):
+   result = ""
+   for char in string:
+      result = result + "{0:b}".format( ord(char) ).zfill(8)
+   return pad_msg(result)
+
+# Converts a decimal number to binary
+def decimalToBin(num, num_bits):
+   return "{0:b}".format(num).zfill(num_bits)
+
+# Converts an immediate in the instruction to binary
+def immToBin(imm, format):
+   if(imm[0] != "#"):
+      raise Exception("invalid immediate argument")
+      return ""
+   if (format == "I"):
+      if(imm[1:].isdigit() and int(imm[1:]) < 32):
+         return decimalToBin(int(imm[1:]),5)
+   elif (format == "J"):
+      if(imm[1:].isdigit() and int(imm[1:]) < 511):
+         return decimalToBin(int(imm[1:]),11)
+      if(imm[1] == "-" and int(imm[2:]) < 511):
+         return twosComp(decimalToBin(int(imm[2:]),11))
+
+# Formats the S instruction inputs so that every 16 bits is on a new line
+def formatSpecial(str):
+   i = 0
+   result = ""
+   while (i < len(str)):
+      result = result + str[i]
+      i = i + 1
+      if (i%16 == 0 and i != len(str)):
+         result = result + "\n"
+   return result
+
+# Pads special instructions
+def pad_msg(msg):
+   if(line[0].upper() == "HASH"):
+      result =  msg + "1"
+      msg_length = len(msg)
+      msg_length = decimalToBin(msg_length,64)
+      while(len(result) < 448):
+         result = result + "0"
+      result = result + msg_length
+   else:
+      result = msg
+      while(len(result) < 128):
+         result = "0" + result
+   return result
+
+def getRegNum(reg):
+   if(reg.lower() == "r0"): return "000"
+   elif(reg.lower() == "r1"): return "001"
+   elif(reg.lower() == "r2"): return "010"
+   elif(reg.lower() == "r3"): return "011"
+   elif(reg.lower() == "r4"): return "100"
+   elif(reg.lower() == "r5"): return "101"
+   elif(reg.lower() == "r6"): return "110"
+   elif(reg.lower() == "r7"): return "111"
+   else: 
+      raise Exception("Invalid register argument")
+      return ""
 if (len(sys.argv) <= 1):
    raise Exception("No input file given")
 
@@ -229,8 +247,8 @@ dec_index = 0
 
 #file_out = os.path.split(file_name)[1]
 #file_out = file_out.split(".")[0] + ".out"
-file_out = "output"
-f = open(file_out, "w") 
+#file_out = "output"
+#f = open(file_out, "w") 
 
 for line in contents:
    line_output = ""
@@ -265,11 +283,12 @@ for line in contents:
          if (line[0].upper() == "DEC"):
             line_output = line_output + decimalToBin(int(dec_index),11)
             dec_index = dec_index + 1
-         line_output = line_output + " " + asciiToBin(" ".join(line[1:]))
+         line_output = line_output + "\n" + formatSpecial(asciiToBin(" ".join(line[1:])))
    if(line_output != ""):
-      f.write(line_output + "\n")
+      print(line_output)
+    # f.write(line_output + "\n")
 #   except:
 #      print("error on line " + str(line_num))
 #      print(" ".join(line))
 #      break
-f.close()
+#f.close()

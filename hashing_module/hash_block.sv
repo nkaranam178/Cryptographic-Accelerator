@@ -112,22 +112,22 @@ module hash_block(
 	// Break input into 16 32 bit words
 	reg [31:0] split_data[15:0];	
 	
-	assign split_data[0] = hash_data[31:0];
-	assign split_data[1] = hash_data[63:32];
-	assign split_data[2] = hash_data[95:64];
-	assign split_data[3] = hash_data[127:96];
-	assign split_data[4] = hash_data[159:128];
-	assign split_data[5] = hash_data[191:160];
-	assign split_data[6] = hash_data[223:192];
-	assign split_data[7] = hash_data[255:224];
-	assign split_data[8] = hash_data[287:256];
-	assign split_data[9] = hash_data[319:288];
-	assign split_data[10] = hash_data[351:320];
-	assign split_data[11] = hash_data[383:352];
-	assign split_data[12] = hash_data[415:384];
-	assign split_data[13] = hash_data[447:416];
-	assign split_data[14] = hash_data[479:448];
-	assign split_data[15] = hash_data[511:480];
+	assign split_data[15] = hash_data[31:0];
+	assign split_data[14] = hash_data[63:32];
+	assign split_data[13] = hash_data[95:64];
+	assign split_data[12] = hash_data[127:96];
+	assign split_data[11] = hash_data[159:128];
+	assign split_data[10] = hash_data[191:160];
+	assign split_data[9] = hash_data[223:192];
+	assign split_data[8] = hash_data[255:224];
+	assign split_data[7] = hash_data[287:256];
+	assign split_data[6] = hash_data[319:288];
+	assign split_data[5] = hash_data[351:320];
+	assign split_data[4] = hash_data[383:352];
+	assign split_data[3] = hash_data[415:384];
+	assign split_data[2] = hash_data[447:416];
+	assign split_data[1] = hash_data[479:448];
+	assign split_data[0] = hash_data[511:480];
 	
 	// Message counter block
 	msg_counter msg_counter0( 	.rst_ext(rst_ext),
@@ -158,14 +158,14 @@ module hash_block(
 	
 	
 /*========= rounds loop ==========*/
-	reg [319:0] h;
+	//reg [319:0] h;
 	rounds_loop rounds_looop0(	.clk(clk),
 								.rst_n(rst_n),
 								.rounds_en(rounds_en),
 								.rounds_cnt(msg_cnt),
 								.msg(msg),
 								.rounds_done(rounds_done),
-								.h(h),
+								//.h(h),
 								.hh(hh));
 
 endmodule
