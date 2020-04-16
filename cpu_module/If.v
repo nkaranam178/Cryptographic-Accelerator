@@ -5,7 +5,7 @@ module If(clk, rst_n, branch, target_pc, instr_to_write, ImemWrite, cur_pc, inst
 
 input clk, rst_n, branch, ImemWrite, DmemStall;
 input[15:0] target_pc, instr_to_write;
-output[15:0] instr, instr;
+output[15:0] instr;
 reg stall, stall2, DmemStall2, DmemStall3;
 reg[15:0] addr, stallReg;
 wire[15:0] instrOut;

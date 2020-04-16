@@ -79,8 +79,10 @@ initial begin
 	@(negedge clk);
 	@(posedge clk);
 	@(negedge clk);
-	if (mem_out != 16'habcd) 
+	if (mem_out != 16'habcd) begin
 	  $display("Error %h != abcd", mem_out);
+	  $stop;
+	end
 	else
 	  $display("Addr: %H , value: %H", addr, mem_out);
 	addr = 16'h2;	// 0xffff
@@ -88,8 +90,10 @@ initial begin
 	@(negedge clk);
 	@(posedge clk);
 	@(negedge clk);
-	if (mem_out != 16'hffff) 
+	if (mem_out != 16'hffff) begin
 	  $display("Error %h != ffff", mem_out);
+	  $stop;
+	end
 	else
 	  $display("Addr: %H , value: %H", addr, mem_out);
 	addr = 16'h4;  // 0x1234
@@ -97,8 +101,10 @@ initial begin
 	@(negedge clk);
 	@(posedge clk);
 	@(negedge clk);
-	if (mem_out != 16'h1234) 
+	if (mem_out != 16'h1234) begin
 	  $display("Error %h != 1234", mem_out);
+	  $stop;
+	end
 	else
 	  $display("Addr: %H , value: %H", addr, mem_out);
 	addr = 16'h6;  // 0xdead
@@ -106,8 +112,10 @@ initial begin
 	@(negedge clk);
 	@(posedge clk);
 	@(negedge clk);
-	if (mem_out != 16'hdead) 
+	if (mem_out != 16'hdead) begin
 	  $display("Error %h != dead", mem_out);
+	  $stop;
+	end
 	else
 	  $display("Addr: %H , value: %H", addr, mem_out);
 	addr = 16'h8;  // 0xbeef
@@ -115,13 +123,16 @@ initial begin
 	@(negedge clk);
 	@(posedge clk);
 	@(negedge clk);
-	if (mem_out != 16'hbeef) 
+	if (mem_out != 16'hbeef) begin
 	  $display("Error %h != beef", mem_out);
+	  $stop;
+	end
 	else
 	  $display("Addr: %H , value: %H", addr, mem_out);
 	@(posedge clk);
 	@(negedge clk);
-
+	$display("\nPassed\n");
+	$stop;
 
 end
 

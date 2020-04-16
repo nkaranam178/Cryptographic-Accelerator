@@ -72,36 +72,46 @@ initial begin
 	@(posedge clk);  
 	//cur_pc = 0;
 	@(negedge clk);
-	if (instr != 16'habcd) 
+	if (instr != 16'habcd) begin
 	  $display("Error %h != abcd", instr);
+	  $stop;
+	end
 	else
 	  $display("PC: %H , instr: %H", cur_pc, instr);
 	@(posedge clk);
 	//cur_pc = 2;
 	@(negedge clk);
-	if (instr != 16'hffff) 
+	if (instr != 16'hffff) begin
 	  $display("Error %h != ffff", instr);
+	  $stop;
+	end
 	else
 	  $display("PC: %H , instr: %H", cur_pc, instr);
 	@(posedge clk);
 	// cur_pc = 4
 	@(negedge clk);
-	if (instr != 16'h1234) 
+	if (instr != 16'h1234) begin
 	  $display("Error %h != 1234", instr);
+	  $stop;
+	end
 	else
 	  $display("PC: %H , instr: %H", cur_pc, instr);
 	@(posedge clk);
 	// cur_pc = 6
 	@(negedge clk);
-	if (instr != 16'hdead) 
+	if (instr != 16'hdead) begin
 	  $display("Error %h != dead", instr);
+	  $stop;	
+	end
 	else
 	  $display("PC: %H , instr: %H", cur_pc, instr);
 	@(posedge clk);
 	// cur_pc = 8
 	@(negedge clk);
-	if (instr != 16'hbeef) 
+	if (instr != 16'hbeef) begin
 	  $display("Error %h != beef", instr);
+	  $stop;
+	end
 	else
 	  $display("PC: %H , instr: %H", cur_pc, instr);
 
@@ -116,16 +126,20 @@ initial begin
 	@(negedge clk);
 	@(posedge clk);
 	@(negedge clk);
-	if (instr != 16'hffff) 
+	if (instr != 16'hffff) begin
 	  $display("Error %h != ffff", instr);
+	  $stop;
+	end
 	else
 	  $display("PC: %H , instr: %H", cur_pc, instr);
 	@(posedge clk);
 	DmemStall = 1;
 	// cur_pc = 4
 	@(negedge clk);
-	if (instr != 16'h1234) 
+	if (instr != 16'h1234) begin
 	  $display("Error %h != 1234", instr);
+	  $stop;
+	end
 	else
 	  $display("PC: %H , instr: %H", cur_pc, instr);
 // Stall signal from Dmem
@@ -143,19 +157,24 @@ initial begin
 	@(posedge clk);
 	// cur_pc = 6
 	@(negedge clk);
-	if (instr != 16'hdead) 
+	if (instr != 16'hdead) begin
 	  $display("Error %h != dead", instr);
+	  $stop;
+	end
 	else
 	  $display("PC: %H , instr: %H", cur_pc, instr);
 	@(posedge clk);
 	// cur_pc = 8
 	@(negedge clk);
-	if (instr != 16'hbeef) 
+	if (instr != 16'hbeef) begin
 	  $display("Error %h != beef", instr);
+	  $stop;
+	end
 	else
 	  $display("PC: %H , instr: %H", cur_pc, instr);
-
-
+	@(posedge clk);
+	@(negedge clk);
+	$display("\nPassed\n");
 	$stop;
 end
 
