@@ -61,6 +61,5 @@ control cntrl (
 	.E_int(E_int), 
 	.D_int(D_int)
 	);
-// instantiate branch unit TODO
 
 endmodule
