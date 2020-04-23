@@ -189,7 +189,7 @@ assign data = (index == 8'h00) ? 8'h00 :	// row 0
 				     (index == 8'hab) ? 8'hf8 : 
 				     (index == 8'hac) ? 8'hd2 : 
 				     (index == 8'had) ? 8'hdc : 
-				     (index == 8'hae) ? 8'hc3 : 
+				     (index == 8'hae) ? 8'hce : 
 				     (index == 8'haf) ? 8'hc0 : 
 
 				     (index == 8'hb0) ? 8'h7a :	// row b

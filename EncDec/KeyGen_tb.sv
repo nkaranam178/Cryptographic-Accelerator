@@ -9,7 +9,7 @@ wire[127:0] roundKey;
 
 KeyGen generator(.keyIn(keyIn), .round(round), .roundKey(roundKey));
 
-assign expected[0] = 128'h2b7e151628aed2a6abf7158809cf4f3c;
+assign expected[0] = 128'h3c4fcf098815f7aba6d2ae2816157e2b;
 assign expected[1] = 128'h2a6c760523a3393988542cb1a0fafe17;
 assign expected[2] = 128'h7359f67f5935807a7a96b943f2c295f2;
 assign expected[3] = 128'h6d7a883b1e237e444716fe3e3d80477d;
@@ -25,7 +25,7 @@ assign expected[10]= 128'hb6630ca6e13f0cc8c9ee2589d014f9a8;
 
 initial begin
 
-	keyIn = 128'h2b7e151628aed2a6abf7158809cf4f3c;
+	keyIn = 128'h3c4fcf098815f7aba6d2ae2816157e2b;
 	rst_n = 0;
 	clk = 1;
 	@(posedge clk);

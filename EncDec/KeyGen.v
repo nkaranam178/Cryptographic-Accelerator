@@ -4,6 +4,7 @@ input[3:0] round;
 input[127:0] keyIn;
 
 wire[127:0] keyMap[10:0];
+wire[127:0] roundKey_int0, roundKey_int1;
 output[127:0] roundKey;
 
 wire[7:0] lowGP;
@@ -38,10 +39,15 @@ assign rc_9 = 8'h1b;
 assign rc_10 = 8'h36;  
 
 
+assign roundKey = (round != 4'h0) ? roundKey_int1 : {roundKey_int1[7:0], roundKey_int1[15:8], roundKey_int1[23:16], roundKey_int1[31:24], roundKey_int1[39:32], roundKey_int1[47:40], roundKey_int1[55:48], roundKey_int1[63:56], roundKey_int1[71:64], roundKey_int1[79:72], roundKey_int1[87:80], roundKey_int1[95:88], roundKey_int1[103:96], roundKey_int1[111:104], roundKey_int1[119:112], roundKey_int1[127:120]};
+
+
+assign roundKey_int1 = (round == 4'h0) ? roundKey_int0 :
+			{roundKey_int0[103:96], roundKey_int0[111:104], roundKey_int0[119:112], roundKey_int0[127:120], roundKey_int0[71:64], roundKey_int0[79:72], roundKey_int0[87:80], roundKey_int0[95:88], roundKey_int0[39:32], roundKey_int0[47:40], roundKey_int0[55:48], roundKey_int0[63:56], roundKey_int0[7:0], roundKey_int0[15:8], roundKey_int0[23:16], roundKey_int0[31:24]};
 
 
 // round key determined by round, extracted from keyMap
-assign roundKey = (round == 4'h0) ? keyMap[0] :	// 1st round is original key
+assign roundKey_int0 = (round == 4'h0) ? keyMap[0] :	// 1st round is original key
 	    	  (round == 4'h1) ? keyMap[1] :	  
 	    	  (round == 4'h2) ? keyMap[2] :
 	    	  (round == 4'h3) ? keyMap[3] :	
@@ -55,13 +61,16 @@ assign roundKey = (round == 4'h0) ? keyMap[0] :	// 1st round is original key
 
 
 // 0th round original key
-assign keyMap[0] = keyIn;
+//assign keyMap[0] = keyIn;
+assign keyMap[0] = {keyIn[7:0], keyIn[15:8], keyIn[23:16], keyIn[31:24], keyIn[39:32], keyIn[47:40], keyIn[55:48], keyIn[63:56], keyIn[71:64], keyIn[79:72], keyIn[87:80], keyIn[95:88], keyIn[103:96], keyIn[111:104], keyIn[119:112], keyIn[127:120]};
+
 
 // Round 1 Key
 assign keyMap[1][127:96] = keyMap[1][95:64] ^ keyMap[0][31:0];
 assign keyMap[1][95:64] = keyMap[1][63:32] ^ keyMap[0][63:32];
 assign keyMap[1][63:32] = keyMap[1][31:0] ^ keyMap[0][95:64];
 assign keyMap[1][31:0] = keyMap[0][127:96] ^ w4out[31:0] ^ rcon_1;
+
 
 assign rot_w4 = {keyMap[0][23:0], keyMap[0][31:24]};
 
