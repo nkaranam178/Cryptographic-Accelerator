@@ -182,7 +182,7 @@ def decimalToBin(num, num_bits):
 # Converts an immediate in the instruction to binary
 def immToBin(imm, format):
    if(imm[0] != "#"):
-      raise Exception("invalid immediate argument")
+      raise Exception("invalid immediate argument on line number " + str(line_num) + ": " + str(" ".join(line)))
       return ""
    if (format == "I"):
       if(imm[1:].isdigit() and int(imm[1:]) < 32):
@@ -229,7 +229,7 @@ def getRegNum(reg):
    elif(reg.lower() == "r6"): return "110"
    elif(reg.lower() == "r7"): return "111"
    else: 
-      raise Exception("Invalid register argument")
+      raise Exception("Invalid register argument on line number " + str(line_num) + ": " + str(" ".join(line)))
       return ""
 if (len(sys.argv) <= 1):
    raise Exception("No input file given")
@@ -254,41 +254,41 @@ for line in contents:
    line_output = ""
    line_num = line_num + 1
    line = line.split()
- #  try:
-   if (len(line) > 0):
-      line_output = line_output + instruction[line[0].upper()]["opcode"]
-      if (instruction[line[0].upper()]["format"] == "R"):  #Parse R format
-         line_output = line_output + getRegNum(line[1].split(",")[0]) + getRegNum(line[2].split(",")[0]) + getRegNum(line[3].split(",")[0])
-         line_output = line_output + instruction[line[0].upper()]["function"] # Append function bits
+   try:
+      if (len(line) > 0):
+         line_output = line_output + instruction[line[0].upper()]["opcode"]
+         if (instruction[line[0].upper()]["format"] == "R"):  #Parse R format
+            line_output = line_output + getRegNum(line[2].split(",")[0]) + getRegNum(line[3].split(",")[0]) + getRegNum(line[1].split(",")[0])
+            line_output = line_output + instruction[line[0].upper()]["function"] # Append function bits
 
-      if (instruction[line[0].upper()]["format"] == "I"):  #Parse I format
-         if (line[0].upper() == "MOV"):
-            line_output = line_output + getRegNum(line[1].split(",")[0]) + getRegNum(line[2].split(",")[0]) + "00000"	
-         else:
-            line_output = line_output + getRegNum(line[1].split(",")[0]) + getRegNum(line[2].split(",")[0]) + immToBin(line[3],"I")
+         if (instruction[line[0].upper()]["format"] == "I"):  #Parse I format
+            if (line[0].upper() == "MOV"):
+               line_output = line_output + getRegNum(line[2].split(",")[0]) + getRegNum(line[1].split(",")[0]) + "00000"	
+            else:
+               line_output = line_output + getRegNum(line[2].split(",")[0]) + getRegNum(line[1].split(",")[0]) + immToBin(line[3],"I")
 
-      if (instruction[line[0].upper()]["format"] == "J"):  #Parse J format
-         if (line[0].upper() == "HALT" or line[0].upper() == "NOP"):
-            line_output = line_output + "00000000000"
-         else:
-            line_output = line_output + immToBin(line[1], "J")	
+         if (instruction[line[0].upper()]["format"] == "J"):  #Parse J format
+            if (line[0].upper() == "HALT" or line[0].upper() == "NOP"):
+               line_output = line_output + "00000000000"
+            else:
+               line_output = line_output + immToBin(line[1], "J")	
 
-      if (instruction[line[0].upper()]["format"] == "S"):  #Parse S format
-         if (line[0].upper() == "HASH"):
-            line_output = line_output + decimalToBin(int(hash_index),11)
-            hash_index = hash_index + 1
-         if (line[0].upper() == "ENC"):
-            line_output = line_output + decimalToBin(int(enc_index),11)
-            enc_index = enc_index + 1
-         if (line[0].upper() == "DEC"):
-            line_output = line_output + decimalToBin(int(dec_index),11)
-            dec_index = dec_index + 1
-         line_output = line_output + "\n" + formatSpecial(asciiToBin(" ".join(line[1:])))
-   if(line_output != ""):
-      print(line_output)
+         if (instruction[line[0].upper()]["format"] == "S"):  #Parse S format
+            if (line[0].upper() == "HASH"):
+               line_output = line_output + decimalToBin(int(hash_index),11)
+               hash_index = hash_index + 2
+            if (line[0].upper() == "ENC"):
+               line_output = line_output + decimalToBin(int(enc_index),11)
+               enc_index = enc_index + 2
+            if (line[0].upper() == "DEC"):
+               line_output = line_output + decimalToBin(int(dec_index),11)
+               dec_index = dec_index + 2
+            line_output = line_output + "\n" + formatSpecial(asciiToBin(" ".join(line[1:])))
+      if(line_output != ""):
+         print(line_output)
     # f.write(line_output + "\n")
-#   except:
-#      print("error on line " + str(line_num))
-#      print(" ".join(line))
-#      break
+   except:
+      print("error on line " + str(line_num))
+      print(" ".join(line))
+      break
 #f.close()
