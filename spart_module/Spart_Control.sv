@@ -1,5 +1,6 @@
 module Spart_Control(clk, rst_n, data_in, to_IMEM, to_HASH, to_ENC, to_DEC, cpu_start, r_addr, 
-						to_IMEM_en, to_HASH_en, to_DEC_en, to_ENC_en);
+						to_IMEM_en, to_HASH_en, to_DEC_en, to_ENC_en, imem_addr, 
+						hash_addr_a, hash_addr_b, encrypt_addr, decrypt_addr);
 	
 	////////////////////
 	//external signals//
@@ -10,6 +11,9 @@ module Spart_Control(clk, rst_n, data_in, to_IMEM, to_HASH, to_ENC, to_DEC, cpu_
 	output [15:0] to_IMEM, r_addr;	// dataline that gets written into IMEM BRAM, addr to read from program loader
 	output [511:0] to_HASH; // dataline that gets written into HASH BRAM
 	output [127:0] to_ENC, to_DEC; //datalines that get written into ENC and DEC BRAM
+	output [8:0] imem_addr;
+	output [3:0] hash_addr_a, hash_addr_b;
+	output [4:0] encrypt_addr, decrypt_addr;
 
 	////////////////////
 	//internal signals//
@@ -17,9 +21,17 @@ module Spart_Control(clk, rst_n, data_in, to_IMEM, to_HASH, to_ENC, to_DEC, cpu_
 	reg [15:0] address;
 	reg [3:0] nxt_ins;
 	reg fetch_ins, ins_rdy, count_hash, count_en_de, gen_en, write_hash, write_enc, write_dec, write_imem, start_cpu;
-	
+	reg [3:0] hash_addr_count;
+	reg [8:0] imem_addr_count;
+	reg [4:0] decrypt_addr_count, encrypt_addr_count;
 	reg [511:0] hash_buffer; // dataline that gets written into HASH BRAM
 	reg [127:0] enc_buffer, dec_buffer;
+	
+	
+	
+	
+	
+	
 	///////////////
 	//assignments//
 	///////////////
@@ -38,6 +50,45 @@ module Spart_Control(clk, rst_n, data_in, to_IMEM, to_HASH, to_ENC, to_DEC, cpu_
 	assign to_DEC_en = (gen_en & write_dec);
 	assign to_ENC_en = (gen_en & write_enc);
 	/////////
+	assign hash_addr_a = hash_addr_count - 2;
+	assign hash_addr_b = hash_addr_count - 2;
+	assign imem_addr = imem_addr_count - 2;
+	assign encrypt_addr = encrypt_addr_count - 1;
+	assign decrypt_addr = decrypt_addr_count - 1;
+	///////////////////////////////////////////////////////////////////////
+	
+	
+	always @(posedge gen_en, negedge rst_n) begin
+		if (~rst_n)
+			hash_addr_count <= 4'b0000;
+		else if (write_hash)
+			hash_addr_count <= hash_addr_count + 2;
+	end
+	
+	
+	always @(posedge gen_en, negedge rst_n) begin
+		if (~rst_n)
+			imem_addr_count <= 9'b000000000;
+		else if (write_imem)
+			imem_addr_count <= imem_addr_count + 2;
+	end
+	
+	
+	always @(posedge gen_en, negedge rst_n) begin
+		if (~rst_n)
+			encrypt_addr_count <= 5'b00000;
+		else if (write_enc)
+			encrypt_addr_count <= encrypt_addr_count + 1;
+	end
+	
+	
+	always @(posedge gen_en, negedge rst_n) begin
+		if (~rst_n)
+			decrypt_addr_count <= 5'b00000;
+		else if (write_dec)
+			decrypt_addr_count <= decrypt_addr_count + 1;
+	end	
+	
 	
 	// increment to fetch the next instruction	// TODO: Slow this down maybe?
 	always @(posedge clk) begin
