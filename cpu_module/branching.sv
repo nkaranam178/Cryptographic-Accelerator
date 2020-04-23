@@ -6,7 +6,7 @@ input [2:0] flags;	 	// from exe
 input [15:0] instruction;	//decode is stallled so current instr is enough
 input [15:0] pc_plus_two;	// incremented pc from IFID reg
 
-output reg branch;		// select input to fetch stage's mux
+output wire branch;		// select input to fetch stage's mux
 output [15:0] target_pc;	// input to fetch stage's mux
 
 wire internal_branch;

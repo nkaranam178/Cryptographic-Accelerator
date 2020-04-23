@@ -19,18 +19,25 @@ module decode (
 	index,
 	read_data_1, 
 	read_data_2,
-	instruction_out);
+	instruction_out,
+	rd,
+	wb_rd);
 
 input clk, rst_n, wbhalt, H_done, E_done, D_done, wb_regWrite; 
 input [15:0] instruction_in, write_data;
+input wire[2:0] wb_rd;
 output RegWrite, Branch, MemWrite, MemToReg, ALUSrc, H_int, E_int, D_int;
 output [10:0] index; 
 output [15:0] read_data_1, read_data_2, instruction_out;
 wire regWrite;
-wire [2:0] rd;
+output wire [2:0] rd;
 
 assign regWrite = !wbhalt && wb_regWrite;	// the actual rf write enable signal
-assign rd = instruction_in[15:13] == 3'b011 ? instruction_in[7:5] : instruction_in[4:2];
+
+// TODO 422 this needs to be muxed on ALUSrc?
+assign rd = ALUSrc ? instruction_in[7:5] : instruction_in[4:2];
+
+
 assign index = instruction_in[10:0];
 assign instruction_out = instruction_in;
 
@@ -41,7 +48,7 @@ regFile rf (
 	.regWrite(regWrite), 
 	.rs(instruction_in[10:8]), 
 	.rt(instruction_in[7:5]), 
-	.rd(rd), 
+	.rd(wb_rd),
 	.write_data(write_data), 
 	.read_data_1(read_data_1), 
 	.read_data_2(read_data_2)

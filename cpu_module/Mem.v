@@ -10,7 +10,7 @@ reg done, stall;
 assign DmemStall = ((memRead | DmemWrite) & !done);
 
 // BRAM IP
-BRAM Dmem(.address(alu_out[8:0]), .clock(clk), .data(alu_in2), .wren(DmemWrite), .q(mem_out));
+ram16_256 Dmem(.address(alu_out[7:0]), .clock(clk), .data(alu_in2), .wren(DmemWrite), .q(mem_out));
 
 
 

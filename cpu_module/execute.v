@@ -1,4 +1,4 @@
-module execute(clk, rst_n, read_data_1, read_data_2, imm, opcode, aluOp, aluSrc, memwb_data, exmem_data, flags, alu_out, value_to_write);
+module execute(clk, rst_n, read_data_1, read_data_2, imm, opcode, aluOp, aluSrc, memwb_data, exmem_data, flags, alu_out, value_to_write, alu_in_1_src, alu_in_2_src);
 	// X stage (currently) without forwarding
 	
 	// Note: imm isn't in our microarchitecture docs, but should be. I'm adding a MUX to handle this
@@ -38,12 +38,14 @@ module execute(clk, rst_n, read_data_1, read_data_2, imm, opcode, aluOp, aluSrc,
 	
 	// Interface
 	input wire clk, rst_n;	// From top level overall
-	input wire[15:0] read_data_1, read_data_2, imm;	// From ID/EX Pipeline Reg. Meant for rd1 ~ Rd, rd2 ~ Rs or Imm
+	input wire[15:0] read_data_1, read_data_2;	// From ID/EX Pipeline Reg. Meant for rd1 ~ Rd, rd2 ~ Rs or Imm
+	input wire[10:0] imm;
 	input wire[4:0] opcode;	// From ID/EX Pipeline Reg
 	input wire[1:0] aluOp;	// From ID/EX Pipeline Reg
 	input wire aluSrc;		// From ID/EX Pipeline Reg
 	input wire[15:0] exmem_data;	// For Ex-to-Ex Forwarding, from the EX/MEM Pipeline Reg
 	input wire[15:0] memwb_data;	// For Mem-to-Ex Forwarding, from the MEM/Walu_in_2 Pipeline Reg
+	input wire[1:0] alu_in_1_src, alu_in_2_src;
 	
 	output reg[2:0] flags;		// The destination of this is this reg itself
 								// Note: Flags format is {Z, V, N} == {Zero, Overflow, Negative}
@@ -56,11 +58,18 @@ module execute(clk, rst_n, read_data_1, read_data_2, imm, opcode, aluOp, aluSrc,
 	wire ovflAdd, ovflSub;
 	wire[2:0] flags_d, flags_WE;	// Control signals for the flags register
 	wire[15:0] sraTemp0, sraTemp1, sraTemp2, sraResult;
+	wire[10:0] imm_use;
+	
+	// Interpret immediate - sign extend 5 bit imm unless it's a Branch
+	assign imm_use = opcode[4:3] == 2'b10 ? imm : {{6{imm[4]}}, imm[4:0]};
 	
 	// Handle forwarding // TODO
-	assign alu_in_1 = read_data_1;
+	assign alu_in_1 = alu_in_1_src[1:0] == 2'b00 ? exmem_data : 
+					  alu_in_1_src[1:0] == 2'b01 ? memwb_data : read_data_1;
 	// Immediates used in ADDI, SUBI, SLL, SRL, SRA, ST, LD, B
-	assign alu_in_2 = aluSrc ? imm : read_data_2;
+	assign alu_in_2 = alu_in_2_src[1:0] == 2'b00 ? exmem_data : 
+					  alu_in_2_src[1:0] == 2'b01 ? memwb_data : 
+					  aluSrc ? imm_use : read_data_2;
 	// aluSrc replaced `(opcode[4:1] == 4'b0010 || (opcode[4:2] == 3'b010 && opcode[1:0] != 2'b11) || opcode[4:1] == 4'b0110 || opcode[4:3] == 2'b10)`
 	
 	
