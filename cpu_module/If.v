@@ -65,7 +65,7 @@ end
 
 
 // BRAM IP
-BRAM Imem(.address(addr[8:0]), .clock(clk), .data(instr_to_write), .wren(ImemWrite), .q(instrOut));
+BRAM Imem(.address({1'b0, addr[7:0]}), .clock(clk), .data(instr_to_write), .wren(ImemWrite), .q(instrOut));
 
 
 endmodule

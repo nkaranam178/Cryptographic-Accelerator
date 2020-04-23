@@ -1,6 +1,8 @@
+// synopsys translate_off
+`timescale 1 ps / 1 ps
+// synopsys translate_on
 module gp_cpu_tb();
   
-
    wire [15:0] PC;
    wire [15:0] Instr;           
                                
@@ -11,6 +13,7 @@ module gp_cpu_tb();
    wire        MemRead;
    wire [15:0] MemAddress;
    wire [15:0] MemData;
+   wire [10:0] mem_index;
 
    wire        Halt;         /* Halt executed and in writeback stage */
         
@@ -22,10 +25,16 @@ module gp_cpu_tb();
 
    reg clk; /* Clock input */
    reg rst_n; /* (Active low) Reset input */
+   
+   reg ImemWrite;
+   reg[15:0] ImemData;
+   
+   reg writeToFile;
 
      
    // General purpose cpu instance
-   gp_cpu DUT(.clk(clk), .rst_n(rst_n), .H_done(H_done), .E_done(E_done), .D_done(D_done), 
+   gp_cpu DUT(.clk(clk), .rst_n(rst_n), .H_done(H_done), .E_done(E_done),
+		.ImemWrite(ImemWrite), .ImemData(ImemData), .writeToFile(writeToFile), .D_done(D_done), 
 		.H_int(H_int), .E_int(E_int), .D_int(D_int), .index(mem_index), .cpu_done(Halt));
 
 
@@ -54,8 +63,72 @@ module gp_cpu_tb();
       $dumpvars;
       cycle_count = 0;
       rst_n = 0; /* Intial reset state */
-      clk = 1;
-      #201 rst_n = 1; // delay until slightly after two clock periods
+      clk = 0;
+	  ImemWrite = 0;
+	  ImemData = 16'h2027;	// I0: ADDI R0 R1 #7 ([R1] <- [R0] + 7)
+	  writeToFile = 0;
+	  
+	  
+	  @(posedge clk);
+	  @(negedge clk);
+      rst_n = 1; // delay until slightly after two clock periods
+	  ImemWrite = 1;
+	  
+	  @(posedge clk);
+	  @(negedge clk);
+	  ImemData = 16'h2265;	// I1: ADDI R2 R3 #5 ([R3] <- [R2] + 5) 0x2265
+
+	  @(posedge clk);
+	  @(negedge clk);
+	  ImemData = 16'h3175;	// I2: SUB R1 R3 R5 ([R5] <- [R1] - [R3])
+	  
+	  @(posedge clk);
+	  @(negedge clk);
+	  //ImemData = 16'h87F8;	// I3: BNE -8		// infinite loop
+	  ImemData = 16'h8FF8;		// I3: BEQ -8
+	  
+	  @(posedge clk);
+	  @(negedge clk);
+	  ImemData = 16'h6562;	// I4: ST R5 R3 2 (Dmem[[R5] + 2] <- [R3])
+	  
+	  @(posedge clk);
+	  @(negedge clk);
+	  ImemData = 16'h6DE2;	// I5: LD R2 R7 2 ([R7] <- (Dmem[[R5] + 2]))
+	  
+	  @(posedge clk);
+	  @(negedge clk);
+	  ImemData = 16'h8006;	// I6:  BNE 6
+	  
+	  @(posedge clk);
+	  @(negedge clk);
+	  ImemData = 16'h0000;	// I7: NOP
+	  
+	  @(posedge clk);
+	  @(negedge clk);
+	  ImemData = 16'h0000;	// I8: NOP
+	  
+	  @(posedge clk);
+	  @(negedge clk);
+	  ImemData = 16'h0000;	// I9: NOP
+	  
+	  @(posedge clk);
+	  @(negedge clk);
+	  ImemData = 16'hFFFF;	// I10: HLT
+	  
+	  @(posedge clk);
+	  @(negedge clk);
+	  ImemData = 16'h2266;	// I11: ADDI R2 R3 #6 ([R3] <- [R2] + 6)
+	  
+	  @(posedge clk);
+	  @(negedge clk);
+	  rst_n = 0;
+	  ImemWrite = 0;
+	  writeToFile = 1;
+	  
+	  @(posedge clk);
+	  @(posedge clk);
+	  @(negedge clk);
+	  rst_n = 1;
     end
 
     always #50 begin   // delay 1/2 clock period each time through loop
@@ -63,7 +136,10 @@ module gp_cpu_tb();
     end
     // catch infinite programs
     always @(posedge clk) begin
-    	cycle_count = cycle_count + 1;
+    if (writeToFile)
+	  cycle_count = cycle_count + 1;
+	else
+	  cycle_count = 0;
 	if (cycle_count > 100000) begin
 		$display("More than 100000 cycles of simulation...error?\n");
 		$finish;
@@ -75,7 +151,7 @@ module gp_cpu_tb();
 
    /* Stats */
    always @ (posedge clk) begin
-      if (rst_n) begin
+      if (rst_n & writeToFile) begin
          if (Halt || RegWrite || MemWrite) begin
             inst_count = inst_count + 1;
          end
@@ -115,7 +191,7 @@ module gp_cpu_tb();
                       PC );
             $fclose(trace_file);
             $fclose(sim_log_file);            
-            $finish;
+            $stop;
          end else begin
             if (MemWrite) begin
                // store
@@ -140,22 +216,22 @@ module gp_cpu_tb();
    /* Assigns internal signals to top level wires */
 
    // Current PC
-   assign PC = DUT.If.pc;
+   assign PC = DUT.If_stage.cur_pc;
    
    // Current Instruction
-   assign Instr = DUT.If.instr;
+   assign Instr = DUT.If_stage.instr;
    
    // RegWrite in writeback stage
-   assign RegWrite = DUT.MemWbRegWrite;
+   assign RegWrite = DUT.MemWb_regWrite;
 
    // Desitination register writeback stage
    assign Rd = DUT.MemWb_rd;
 
    // Data to be written to register in writeback stage
-   assign WriteData = DUT.MemWb_writeData;
+   assign WriteData = DUT.Wb_writeData;
 
    // Memory read signal Mem stage
-   assign MemRead = DUT.ExMem_memRead;
+   assign MemRead = DUT.ExMem_memToReg;
 
    // Memory write signal Mem stage
    assign MemWrite = DUT.ExMem_memWrite;
