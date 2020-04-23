@@ -32,7 +32,7 @@ assign data = (index == 8'h00) ? 8'h00 :	// row 0
 				     (index == 8'h17) ? 8'h81 : 
 				     (index == 8'h18) ? 8'he8 : 
 				     (index == 8'h19) ? 8'he3 : 
-				     (index == 8'h1a) ? 8'hf3 : 
+				     (index == 8'h1a) ? 8'hfe : 
 				     (index == 8'h1b) ? 8'hf5 : 
 				     (index == 8'h1c) ? 8'hc4 : 
 				     (index == 8'h1d) ? 8'hcf : 

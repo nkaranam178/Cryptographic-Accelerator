@@ -13,7 +13,7 @@ assign a3 = dataIn[7:0];
 // InvMixColumns Matrix Multiplication
 assign dataOut[31:24] = a0_14 ^ a1_11 ^ a2_13 ^ a3_9;
 assign dataOut[23:16] = a0_9 ^ a1_14 ^ a2_11 ^ a3_13;
-assign dataOut[15:8] = a0_13 ^ a1_9 ^ a2_14 ^ a3_11;
+assign dataOut[15:8] = a0_13 ^ a1_9 ^ a2_14 ^ a3_11;  
 assign dataOut[7:0] = a0_11 ^ a1_13 ^ a2_9 ^ a3_14;
 
 // Galois Field Multiplication Index Table_9
