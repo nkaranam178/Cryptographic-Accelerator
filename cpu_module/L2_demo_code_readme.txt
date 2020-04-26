@@ -2,7 +2,7 @@ L2 CPU demo program:
 
 I0:  0x2027 ADDI R0 R1 #7 ([R1] <- [R0] + 7)		Normal ALU op
 I1:  0x2265 ADDI R2 R3 #5 ([R3] <- [R2] + 5)		Normal ALU op
-I2:  0x2175 SUB R1 R3 R5 ([R5] <- [R1] - [R3])		EX-to-EX and MEM-to-EX forwarded ALU op
+I2:  0x3175 SUB R1 R3 R5 ([R5] <- [R1] - [R3])		EX-to-EX and MEM-to-EX forwarded ALU op
 I3:  0x8FF8 BEQ -8									Conditional branch that is NOT taken
 I4:  0x6562 ST R5 R3 2 (Dmem[[R5] + 2] <- [R3])		Normal Store op
 I5:  0x6DE2 LD R2 R7 2 ([R7] <- (Dmem[[R5] + 2]))	Load from the same addr

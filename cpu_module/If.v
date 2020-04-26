@@ -1,9 +1,10 @@
 // synopsys translate_off
 `timescale 1 ps / 1 ps
 // synopsys translate_on
-module If(clk, rst_n, branch, target_pc, instr_to_write, ImemWrite, cur_pc, instr, ImemStall, DmemStall);
+module If(clk, rst_n, branch, target_pc, instr_to_write, ImemWrite, cur_pc, instr, ImemStall, DmemStall, addr_to_write);
 
 input clk, rst_n, branch, ImemWrite, DmemStall;
+input[8:0] addr_to_write; 
 input[15:0] target_pc, instr_to_write;
 output[15:0] instr;
 reg stall, stall2, DmemStall2, DmemStall3;
@@ -11,6 +12,8 @@ reg[15:0] addr, stallReg;
 wire[15:0] instrOut;
 output reg[15:0] cur_pc;
 output ImemStall;
+wire[8:0] imem_addr;
+
 
 // Pc stall signal
 assign ImemStall = (stall | stall2);
@@ -63,9 +66,11 @@ always @(posedge clk) begin
 
 end
 
+// 2 mode SPART
+assign imem_addr = ~rst_n ? addr_to_write : {1'b0, addr[7:0]};
 
 // BRAM IP
-BRAM Imem(.address({1'b0, addr[7:0]}), .clock(clk), .data(instr_to_write), .wren(ImemWrite), .q(instrOut));
+BRAM Imem(.address(imem_addr), .clock(clk), .data(instr_to_write), .wren(ImemWrite), .q(instrOut));
 
 
 endmodule

@@ -9,6 +9,7 @@ output logic E_done;
 reg[3:0] cntr;
 reg[127:0] state, ciphertext_reg;
 wire[127:0] plaintext_flip, key_flip, roundKey, sbox_to_rows, rows_out, cols_out, xor_in, xor_out;
+reg E_int_ff;
 
 // Key Scheduler
 KeyGen gen(.keyIn(key_flip), .round(cntr), .roundKey(roundKey));
@@ -31,6 +32,16 @@ assign xor_out = cols_out ^ roundKey;
 typedef enum reg[1:0] {IDLE, COUNT, DONE} state_t;
 state_t cur_state, next_state;
 
+// flop E_int - cleared by next instruciton not setting E_int
+always @(posedge clk, negedge rst_n) begin
+	if (!rst_n)
+	  E_int_ff <= 1'b0;
+	else if (E_done)
+	  E_int_ff <= 1'b0;
+	else
+	  E_int_ff <= E_int;
+end
+
 // update SM
 always @(posedge clk, negedge rst_n) begin
 	if (!rst_n)
@@ -44,7 +55,7 @@ always_comb begin
 	E_done = 0;
 	case(cur_state)
 	  IDLE: begin
-	    if (E_int)
+	    if (E_int_ff)
 	      next_state = COUNT;
 	    else
 	      next_state = IDLE;
