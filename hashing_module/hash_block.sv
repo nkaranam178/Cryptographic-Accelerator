@@ -103,7 +103,7 @@ module hash_block(
 			SPART_TRANSMIT: begin
 				nxt_state = SPART_TRANSMIT;
 				
-				if (spart_done) begin
+				if (1'b1) begin		// 1 cycle state - unconditional leave
 					nxt_state = IDLE;
 					H_done = 1'b1;
 				end

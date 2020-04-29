@@ -25,13 +25,14 @@ module capstone_tb();
 	//////////// SW //////////
 	reg 		     [9:0]		SW;		// rst_n
 	wire			 [127:0]	ciphertext;
+	wire						cpu_done;
 	
 	
 	
 	// DUT
 	capstone top_level(.CLOCK2_50(CLOCK2_50), .CLOCK3_50(CLOCK3_50), .CLOCK4_50(CLOCK4_50),
 	.CLOCK_50(CLOCK_50), .HEX0(HEX0), .HEX1(HEX1), .HEX2(HEX2), .HEX3(HEX3), .HEX4(HEX4),
-	.HEX5(HEX5), .KEY(KEY), .LEDR(LEDR), .SW(SW), .ciphertext(ciphertext));
+	.HEX5(HEX5), .KEY(KEY), .LEDR(LEDR), .SW(SW), /*.ciphertext(ciphertext),*/ .cpu_done(cpu_done));
 	
 	always
 		#10 CLOCK_50 = ~CLOCK_50;
@@ -44,6 +45,9 @@ module capstone_tb();
 		@(posedge CLOCK_50);
 		@(posedge CLOCK_50);
 		SW = 10'hFFF;
+		
+		@(posedge cpu_done);
+		$stop;
 	end
 
 

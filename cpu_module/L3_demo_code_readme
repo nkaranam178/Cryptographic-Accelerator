@@ -1,0 +1,53 @@
+L3 CPU demo program:
+
+I0:  0x2027 ADDI R0 R1 #7 ([R1] <- [R0] + 7)		Normal ALU op
+I1:  0x2265 ADDI R2 R3 #5 ([R3] <- [R2] + 5)		Normal ALU op
+I2:  0x3175 SUB R1 R3 R5 ([R5] <- [R1] - [R3])		EX-to-EX and MEM-to-EX forwarded ALU op
+I3:  0x8FF8 BEQ -8									Conditional branch that is NOT taken
+I4:  0x6562 ST R5 R3 2 (Dmem[[R5] + 2] <- [R3])		Normal Store op
+I5:  0x6DE2 LD R2 R7 2 ([R7] <- (Dmem[[R5] + 2]))	Load from the same addr
+I6:  0x8006 BNE 6									Cond. branch that IS taken
+I7:  0x0000 NOP										NOP that gets branched over
+I8:  0x0000 NOP										NOP that gets branched over
+I9:  0x0000 NOP										NOP that gets branched over
+I10: 0xE800 ENC 0
+I11: 0x0000 NOP
+I12: 0x0000 NOP
+I13: 0x0000 NOP
+I14: 0x3B3A XOR R3 R1 R6 ([R6] <- [R3] ^ [R1])
+I15: 0xE8001 ENC 1
+I16: 0x0000 NOP
+I17: 0x0000 NOP
+I18: 0x0000 NOP
+I19: 0x5940 MOV R1 R2 ([R2] <- [R1])
+I20: 0xF000 DEC 0
+I21: 0x0000 NOP
+I22: 0x0000 NOP
+I23: 0x0000 NOP
+I24: 0xF001 DEC 1
+I25: 0x0000 NOP
+I26: 0x0000 NOP
+I27: 0x0000 NOP
+I28: 0xD000 HASH 0
+I29: 0x0000 NOP
+I30: 0x0000 NOP
+I31: 0x0000 NOP
+I32: 0x4686 SLL R6 R4 6 ([R4] <- [R6] << 6) 
+I33: 0xD001 HASH 1
+I34: 0x0000 NOP
+I35: 0x0000 NOP
+I36: 0x0000 NOP
+I37: 0xFFFF HLT										HLT
+
+
+
+Register File contents after correct execution:
+
+R0:		0x0000
+R1:		0x0007		I0 writes this
+R2:		0x0007		I19 writes this
+R3:		0x0005		I1 writes this
+R4:		0x0080		I32 writes this
+R5:		0x0002		I2 writes this
+R6:		0x0002		I14 write this
+R7:		0x0005		I5 writes this

@@ -28,7 +28,8 @@ module capstone(
 	//////////// SW //////////
 	input 		     [9:0]		SW,
 	
-	output			 [127:0]	ciphertext
+	//output			 [127:0]	ciphertext,
+	output						cpu_done
 );
 
 
@@ -141,8 +142,8 @@ Spart_Control_TL spart(.clk(CLOCK2_50), .rst_n(SW[0]), .to_IMEM(to_IMEM),
 	wire[15:0] imem_d;
 	wire[15:0] imem_q;
 	// HASH_MEM //
-	wire	[3:0] hash_address_a;
-	wire	[3:0] hash_address_b;
+	wire	[3:0] hash_address_a, hash_addr_a_final;
+	wire	[3:0] hash_address_b, hash_addr_b_final;
 	wire	[255:0] hash_data_a;
 	wire	[255:0] hash_data_b;
 	wire hash_en;
@@ -154,7 +155,7 @@ Spart_Control_TL spart(.clk(CLOCK2_50), .rst_n(SW[0]), .to_IMEM(to_IMEM),
 	wire encrypt_en;
 	wire [127:0] encrypt_q;
 	// DECRYPTMEM //
-	wire	[4:0] decrypt_addr;
+	wire	[4:0] decrypt_addr, decrypt_addr_final;
 	wire	[127:0] decrypt_d;
 	wire decrypt_en;
 	wire [127:0] decrypt_q;
@@ -168,7 +169,7 @@ Spart_Control_TL spart(.clk(CLOCK2_50), .rst_n(SW[0]), .to_IMEM(to_IMEM),
 		.to_ENC(encrypt_d), 
 		.cpu_start(cpu_start),
 		.to_IMEM_en(imem_en), 
-		.to_HASH_en(hash_en), 
+		.to_HASH_en_TL(hash_en), 
 		.to_DEC_en(decrypt_en), 
 		.to_ENC_en(encrypt_en), 
 		.imem_addr(imem_addr), 
@@ -195,8 +196,9 @@ Spart_Control_TL spart(.clk(CLOCK2_50), .rst_n(SW[0]), .to_IMEM(to_IMEM),
    
    reg writeToFile;
    
-   wire H_done, E_done, D_done;
+   wire H_done, E_done, D_done, side_channel_done_ff;
    wire H_int, E_int, D_int;
+   wire[127:0] plaintext;
    
    wire[127:0] key;
    assign key = 128'h000102030405060708090a0b0c0d0e0f;
@@ -205,16 +207,21 @@ Spart_Control_TL spart(.clk(CLOCK2_50), .rst_n(SW[0]), .to_IMEM(to_IMEM),
    // General purpose cpu instance
    gp_cpu cpu(.clk(CLOCK_50), .rst_n(cpu_start), .H_done(H_done), .E_done(E_done),
 		.ImemWrite(imem_en), .ImemData(imem_d), .writeToFile(writeToFile), .D_done(D_done), 
-		.H_int(H_int), .E_int(E_int), .D_int(D_int), .index(mem_index), .cpu_done(Halt),
-		.addr_to_write(imem_addr));
+		.H_int(H_int), .E_int(E_int), .D_int(D_int), .index(mem_index), .cpu_done(cpu_done),
+		.addr_to_write(imem_addr), .side_channel_done_ff(side_channel_done_ff));
+		
+	// 2 phase SPART
+	assign decrypt_addr_final = cpu_start ? mem_index[4:0] : decrypt_addr;
 		
 	ram128_32 decrypt_mem(
-		.address(decrypt_addr),
+		.address(decrypt_addr_final),
 		.clock(CLOCK_50),
 		.data(decrypt_d),
 		.wren(decrypt_en),
 		.q(decrypt_q));
 		
+	Decrypt_TopLevel dec(.clk(CLOCK_50), .rst_n(SW[0]), .D_int(D_int & ~side_channel_done_ff & ~D_done),
+		.ciphertext(decrypt_q), .key(key), .plaintext(plaintext), .D_done(D_done));
 	
 	// 2 phase SPART
 	assign encrypt_addr_final = cpu_start ? mem_index[4:0] : encrypt_addr;
@@ -226,8 +233,57 @@ Spart_Control_TL spart(.clk(CLOCK2_50), .rst_n(SW[0]), .to_IMEM(to_IMEM),
 		.wren(encrypt_en),
 		.q(encrypt_q));
 		
-	Encrypt_TopLevel enc(.clk(CLOCK_50), .rst_n(SW[0]), .E_int(E_int),
+	Encrypt_TopLevel enc(.clk(CLOCK_50), .rst_n(SW[0]), .E_int(E_int & ~side_channel_done_ff & ~E_done),
 		.plaintext(encrypt_q), .key(key), .ciphertext(ciphertext), .E_done(E_done));
+		
+		
+	wire bram_done, spart_done, rounds_done;
+	wire[7:0] msg_cnt;
+	wire [159:0]	hh;
+//	wire [511:0] hash_data;
+	wire[3:0] hash_block_addr_a, hash_block_addr_b;
+//	wire wren_a, wren_b;
+	wire [255:0] data_a, data_b;
+	wire ext_en, rst_ext, rounds_en, rst_rounds;
+	
+	// 2 phase SPART
+	assign hash_addr_a_final = cpu_start ? hash_block_addr_a : hash_address_a;
+	assign hash_addr_b_final = cpu_start ? hash_block_addr_b : hash_address_b;
+	
+	hash_block hash_block0(	.clk(CLOCK_50),
+							.rst_n(SW[0]),
+							.H_int(H_int & ~side_channel_done_ff & ~H_done),
+							.index(mem_index[3:0]),
+							//.hash_data(hash_data),
+							.H_done(H_done),
+							//.hash_address(hash_address),
+							.hh(hh),
+							//.bram_done( bram_done),
+							//.ext_done(ext_done),
+							.rounds_done(rounds_done),
+							.spart_done(spart_done),
+							.ext_en(ext_en),
+							.rst_ext(rst_ext), 
+							.rounds_en(rounds_en), 
+							.rst_rounds(rst_rounds),
+							.msg_cnt(msg_cnt),
+							.q_a(hash_q_a),
+							.q_b(hash_q_b),
+							.address_a(hash_block_addr_a),
+							.address_b(hash_block_addr_b),
+							.wren_a(),
+							.wren_b());
+							
+	ram256x2_16 bigram(
+						.address_a(hash_addr_a_final),
+						.address_b(hash_addr_b_final),
+						.clock(CLOCK_50),
+						.data_a(hash_data_a),
+						.data_b(hash_data_b),
+						.wren_a(hash_en),
+						.wren_b(hash_en),
+						.q_a(hash_q_a),
+						.q_b(hash_q_b));
 
 
 endmodule

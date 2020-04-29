@@ -20,7 +20,7 @@ module program_loader(data_out, addr, enable, wr, clk, rst);
 		if (rst) begin
 			//load assembled code via .txt file
 			if (!loaded) begin
-				$readmemb("test1.txt", mem);
+				$readmemb("L3demo.txt", mem);
 				loaded = 1;
 			end
 

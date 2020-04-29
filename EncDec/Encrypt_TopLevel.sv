@@ -47,7 +47,12 @@ always @(posedge clk, negedge rst_n) begin
 	if (!rst_n) begin
 		E_int_ff1 <= 1'b0;
 		E_int_ff2 <= 1'b0;
-	end else begin
+	end
+	else if (E_done) begin
+		E_int_ff1 <= 1'b0;
+		E_int_ff2 <= 1'b0;
+	end
+	else begin
 		E_int_ff1 <= E_int_ff;
 		E_int_ff2 <= E_int_ff1;
 	

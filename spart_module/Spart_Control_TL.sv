@@ -1,11 +1,11 @@
 module Spart_Control_TL(clk, rst_n, to_IMEM, to_HASH_a, to_HASH_b, to_DEC, to_ENC, cpu_start,
-						to_IMEM_en, to_HASH_en, to_DEC_en, to_ENC_en, imem_addr, hash_addr_a, 
+						to_IMEM_en, to_HASH_en_TL, to_DEC_en, to_ENC_en, imem_addr, hash_addr_a, 
 						hash_addr_b, encrypt_addr, decrypt_addr);
 	
 	input clk, rst_n;
 	
 	// TODO: connect to sc instantiation 
-	output cpu_start, to_IMEM_en, to_HASH_en, to_DEC_en, to_ENC_en; // tell cpu to begin excecution, read next instruction in from program loader
+	output cpu_start, to_IMEM_en, to_HASH_en_TL, to_DEC_en, to_ENC_en; // tell cpu to begin excecution, read next instruction in from program loader
 	output [15:0] to_IMEM;	// dataline that gets written into IMEM BRAM, addr to read from program loader
 	output [255:0] to_HASH_a, to_HASH_b; // dataline that gets written into HASH BRAM
 	output [127:0] to_ENC, to_DEC; //datalines that get written into ENC and DEC BRAM
@@ -22,8 +22,9 @@ module Spart_Control_TL(clk, rst_n, to_IMEM, to_HASH_a, to_HASH_b, to_DEC, to_EN
 	reg [3:0] hash_addr_a_line, hash_addr_b_line;
 	reg [4:0] encrypt_addr_line, decrypt_addr_line;
 	
-	reg cpu_start_line, to_IMEM_en_line, to_HASH_en_line, to_DEC_en_line, to_ENC_en_line;
 	
+	reg cpu_start_line, to_IMEM_en_line, /*to_HASH_en_line,*/ to_DEC_en_line, to_ENC_en_line;
+	wire to_HASH_en_line;
 	
 	//dataline assignments
 	assign to_IMEM = imem_line;
@@ -39,7 +40,7 @@ module Spart_Control_TL(clk, rst_n, to_IMEM, to_HASH_a, to_HASH_b, to_DEC, to_EN
 	assign decrypt_addr = decrypt_addr_line;
 	//enable assignments
 	assign to_IMEM_en = to_IMEM_en_line;
-	assign to_HASH_en = to_HASH_en_line;
+	assign to_HASH_en_TL = to_HASH_en_line;
 	assign to_ENC_en = to_ENC_en_line;
 	assign to_DEC_en = to_DEC_en_line;
 	assign cpu_start = cpu_start_line;

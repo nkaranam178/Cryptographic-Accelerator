@@ -17,7 +17,7 @@ module rounds_loop(	input wire clk,
 	
 	//assign h = {h0,h1,h2,h3,h4};
 	
-	always @(posedge clk, negedge rst_n) begin
+	always @(*) begin
 		/* if (rst_n == 0) begin
 			a = 160'h67452301;
 			b = 160'hEFCDAB89;

@@ -1,11 +1,12 @@
 // synopsys translate_off
 `timescale 1 ps / 1 ps
 // synopsys translate_on
-module If(clk, rst_n, branch, target_pc, instr_to_write, ImemWrite, cur_pc, instr, ImemStall, DmemStall, addr_to_write);
+module If(clk, rst_n, branch, target_pc, instr_to_write, ImemWrite, cur_pc, instr, ImemStall, DmemStall, addr_to_write, cpu_done);
 
 input clk, rst_n, branch, ImemWrite, DmemStall;
 input[8:0] addr_to_write; 
 input[15:0] target_pc, instr_to_write;
+input cpu_done;
 output[15:0] instr;
 reg stall, stall2, DmemStall2, DmemStall3;
 reg[15:0] addr, stallReg;
@@ -27,6 +28,11 @@ always @(posedge clk, negedge rst_n) begin
 	  stall <= 1;
 	  cur_pc <= 0;
 	  addr <= 0;
+	end
+	else if (cpu_done) begin
+	  cur_pc <= cur_pc;
+	  addr <= addr;
+	  stall <= 0;
 	end
 	else if (stall | stall2) begin
 	  stall <= 0;

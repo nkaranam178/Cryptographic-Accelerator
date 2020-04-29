@@ -4,11 +4,14 @@ input clk, rst_n, D_int;
 input[127:0] ciphertext, key;
 output[127:0] plaintext;
 output logic D_done;
+logic D_done_ff;
+
 
 reg[3:0] cntr;
 reg[127:0] state, plaintext_reg;
 wire[127:0] key_flip, ciphertext_flip, roundKey;
 wire[127:0] InvSBox_out, InvRows_out, InvCols_out, xor_in, xor_out;
+reg D_int_ff, D_int_ff1, D_int_ff2;
 
 // inversions for endianess
 assign key_flip = {key[7:0], key[15:8], key[23:16], key[31:24], key[39:32], key[47:40], key[55:48], key[63:56], key[71:64], key[79:72], key[87:80], key[95:88], key[103:96], key[111:104], key[119:112], key[127:120]};
@@ -38,12 +41,47 @@ always @(posedge clk, negedge rst_n) begin
 	  cur_state <= next_state;
 end
 
+// flop D_int - cleared by next instruciton not setting D_int
+always @(posedge clk, negedge rst_n) begin
+	if (!rst_n)
+	  D_int_ff <= 1'b0;
+	else if (D_done | D_done_ff)
+	  D_int_ff <= 1'b0;
+	else
+	  D_int_ff <= D_int;
+end
+
+always @(posedge clk, negedge rst_n) begin
+	if (!rst_n) begin
+		D_int_ff1 <= 1'b0;
+		D_int_ff2 <= 1'b0;
+	end
+	else if (D_done) begin
+		D_int_ff1 <= 1'b0;
+		D_int_ff2 <= 1'b0;
+	end
+	else begin
+		D_int_ff1 <= D_int_ff;
+		D_int_ff2 <= D_int_ff1;
+	
+	end
+
+end
+
+always @(posedge clk, negedge rst_n) begin
+	if (!rst_n)
+	  D_done_ff <= 1'b0;
+	else
+	  D_done_ff <= D_done;
+end
+
+
 // SM
 always_comb begin
 	D_done = 0;
 	case(cur_state)
 	  IDLE: begin
-	    if (D_int)
+	    if (D_int_ff2)
 	      next_state = COUNT;
 	    else
 	      next_state = IDLE;

@@ -1,4 +1,4 @@
-module gp_cpu(clk, rst_n, H_done, E_done, D_done, ImemWrite, ImemData, writeToFile, H_int, E_int, D_int, index, cpu_done, addr_to_write);
+module gp_cpu(clk, rst_n, H_done, E_done, D_done, ImemWrite, ImemData, writeToFile, H_int, E_int, D_int, index, cpu_done, addr_to_write, side_channel_done_ff);
 
 // Top Level I/O
 input clk, rst_n, H_done, E_done, D_done;
@@ -8,11 +8,12 @@ input wire writeToFile;		// remove once we have SPART
 input wire[8:0] addr_to_write;
 output H_int, E_int, D_int, cpu_done;
 output[10:0] index;
+output reg side_channel_done_ff;
 
 // Write Enables
 wire IfId_WrEn, IdEx_WrEn, ExMem_WrEn, MemWb_WrEn;
 wire side_channel_stall, side_channel_done;
-reg side_channel_done_ff, side_channel_done_ff2;
+reg side_channel_done_ff2;
 
 
 // If Wires
@@ -69,22 +70,15 @@ reg[4:0] MemWb_opcode;
 wire[15:0] Wb_writeData;
 wire wbhalt;
 
-// remove when we instantiate
-//TODO
-//TODO
-//omfg TODO
-assign H_done = 0;
-assign D_done = 0;
-
 assign cpu_done = wbhalt;
 assign side_channel_stall = H_int | E_int | D_int;
 assign side_channel_done = H_done | E_done | D_done;
 
 // TODO 422 these wires were declared but not driven. Tie them high for now.
-assign IfId_WrEn = (~ImemStall & ~dMemStall & ~wbhalt & ~side_channel_stall) | side_channel_done_ff;
-assign IdEx_WrEn = (~dMemStall & ~wbhalt & ~side_channel_stall) | side_channel_done_ff;
-assign ExMem_WrEn = (~dMemStall & ~wbhalt & ~side_channel_stall) | side_channel_done_ff;
-assign MemWb_WrEn = (~wbhalt & ~side_channel_stall) | side_channel_done_ff;
+assign IfId_WrEn = (~ImemStall & ~dMemStall & ~wbhalt & ~side_channel_stall) | (side_channel_done_ff & ~wbhalt);
+assign IdEx_WrEn = (~dMemStall & ~wbhalt & ~side_channel_stall) | (side_channel_done_ff & ~wbhalt);
+assign ExMem_WrEn = (~dMemStall & ~wbhalt & ~side_channel_stall) | (side_channel_done_ff & ~wbhalt);
+assign MemWb_WrEn = (~wbhalt & ~side_channel_stall) | (side_channel_done_ff & ~wbhalt);
 
 always @(posedge clk, negedge rst_n) begin
 	if (!rst_n)
@@ -108,7 +102,8 @@ If If_stage(.clk(clk), .rst_n(rst_n), .branch(branch), .target_pc(target_pc),
 */		
 If If_stage(.clk(clk), .rst_n(rst_n), .branch(branch), .target_pc(target_pc),
 		.instr_to_write(ImemData), .ImemWrite(ImemWrite), .cur_pc(If_pc), .instr(If_instr),
-		.ImemStall(ImemStall), .DmemStall(dMemStall | side_channel_stall), .addr_to_write(addr_to_write));
+		.ImemStall(ImemStall), .DmemStall(dMemStall | side_channel_stall),
+		.addr_to_write(addr_to_write), .cpu_done(cpu_done));
 		// TODO replace ImemWrite with a real SPART signal
 
 
