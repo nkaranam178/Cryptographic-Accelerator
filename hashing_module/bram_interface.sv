@@ -3,24 +3,15 @@ module bram_interface(
 	input reg [3:0] hash_address,
 	output reg [511:0] hash_data,
 	output reg bram_done,
-	input reg bram_en);
+	input reg bram_en,
 	
+	// ram wires
+	input wire[255:0] q_a, q_b,
+	//input reg[255:0] data_a, data_b,
+	output reg[3:0] address_a, address_b,
+	output reg wren_a, wren_b);
 	
-	reg wren_a, wren_b, ready;
-	reg[3:0] address_a, address_b;
-	reg[255:0] data_a, data_b;
-	wire[255:0] q_a, q_b;
-	
-ram256x2_10 bigram(
-	.address_a(address_a),
-	.address_b(address_b),
-	.clock(clk),
-	.data_a(data_a),
-	.data_b(data_b),
-	.wren_a(wren_a),
-	.wren_b(wren_b),
-	.q_a(q_a),
-	.q_b(q_b));
+	reg	ready;
 	
 	//assign hash_data = {data_b,data_a};
 	

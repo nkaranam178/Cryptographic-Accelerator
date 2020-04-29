@@ -18,8 +18,12 @@ module hash_block(
 	output logic ext_en,
 	output logic rst_ext, 
 	output logic rounds_en, 
-	output logic rst_rounds
-	);
+	output logic rst_rounds,
+	
+	// Bram interface port wires
+	input reg [255:0] q_a, q_b,
+	output reg [3:0] address_a, address_b,
+	output reg wren_a, wren_b);
 
 /*========= Declarations ==========*/
 //--- message extension
@@ -117,7 +121,15 @@ module hash_block(
 	.hash_address(index),
 	.hash_data(hash_data),
 	.bram_done(bram_done),
-	.bram_en(bram_en));
+	.bram_en(bram_en),
+	//input wire[255:0] 
+	.q_a(q_a), .q_b(q_b),
+	//input reg[255:0] 
+	//.data_a(data_a), .data_b(data_b),
+	//output reg[3:0] 
+	.address_a(address_a), .address_b(address_b),
+	//output reg 
+	.wren_a(wren_a), .wren_b(wren_b));
 	
 /*========= msg extension ==========*/	
 	// Break input into 16 32 bit words
