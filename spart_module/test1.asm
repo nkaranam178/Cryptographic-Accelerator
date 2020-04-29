@@ -13,4 +13,11 @@ SRA r0, r1, #5
 MOV R2, r3
 
 ENC LOLOLO
+ADDI R5, R0, #1
+ADDI R6, R1, #1
+ADDI R7, R2, #1
+ENC waveform
+ADDI R2, R4, #1
+ADDI R3, R2, #1
+ENC covid19
 HALT

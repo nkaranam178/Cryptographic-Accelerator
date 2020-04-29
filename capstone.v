@@ -217,11 +217,11 @@ Spart_Control_TL spart(.clk(CLOCK2_50), .rst_n(SW[0]), .to_IMEM(to_IMEM),
 		
 	
 	// 2 phase SPART
-	assign encrypt_addr_final = cpu_start ? mem_index : encrypt_addr;
+	assign encrypt_addr_final = cpu_start ? mem_index[4:0] : encrypt_addr;
 	
 	ram128_32 encrypt_mem(
 		.address(encrypt_addr_final),
-		.clock(clk),
+		.clock(CLOCK_50),
 		.data(encrypt_d),
 		.wren(encrypt_en),
 		.q(encrypt_q));

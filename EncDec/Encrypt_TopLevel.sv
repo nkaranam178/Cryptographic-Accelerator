@@ -5,11 +5,12 @@ input clk, rst_n, E_int;
 input[127:0] plaintext, key;
 output[127:0] ciphertext;
 output logic E_done;
+logic E_done_ff;
 
 reg[3:0] cntr;
 reg[127:0] state, ciphertext_reg;
 wire[127:0] plaintext_flip, key_flip, roundKey, sbox_to_rows, rows_out, cols_out, xor_in, xor_out;
-reg E_int_ff;
+reg E_int_ff, E_int_ff1, E_int_ff2;
 
 // Key Scheduler
 KeyGen gen(.keyIn(key_flip), .round(cntr), .roundKey(roundKey));
@@ -36,10 +37,29 @@ state_t cur_state, next_state;
 always @(posedge clk, negedge rst_n) begin
 	if (!rst_n)
 	  E_int_ff <= 1'b0;
-	else if (E_done)
+	else if (E_done | E_done_ff)
 	  E_int_ff <= 1'b0;
 	else
 	  E_int_ff <= E_int;
+end
+
+always @(posedge clk, negedge rst_n) begin
+	if (!rst_n) begin
+		E_int_ff1 <= 1'b0;
+		E_int_ff2 <= 1'b0;
+	end else begin
+		E_int_ff1 <= E_int_ff;
+		E_int_ff2 <= E_int_ff1;
+	
+	end
+
+end
+
+always @(posedge clk, negedge rst_n) begin
+	if (!rst_n)
+	  E_done_ff <= 1'b0;
+	else
+	  E_done_ff <= E_done;
 end
 
 // update SM
@@ -55,7 +75,7 @@ always_comb begin
 	E_done = 0;
 	case(cur_state)
 	  IDLE: begin
-	    if (E_int_ff)
+	    if (E_int_ff2)
 	      next_state = COUNT;
 	    else
 	      next_state = IDLE;

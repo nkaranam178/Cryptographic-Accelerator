@@ -12,6 +12,7 @@ output[10:0] index;
 // Write Enables
 wire IfId_WrEn, IdEx_WrEn, ExMem_WrEn, MemWb_WrEn;
 wire side_channel_stall, side_channel_done;
+reg side_channel_done_ff, side_channel_done_ff2;
 
 
 // If Wires
@@ -80,10 +81,24 @@ assign side_channel_stall = H_int | E_int | D_int;
 assign side_channel_done = H_done | E_done | D_done;
 
 // TODO 422 these wires were declared but not driven. Tie them high for now.
-assign IfId_WrEn = (~ImemStall & ~dMemStall & ~wbhalt & ~side_channel_stall) | side_channel_done;
-assign IdEx_WrEn = (~dMemStall & ~wbhalt & ~side_channel_stall) | side_channel_done;
-assign ExMem_WrEn = (~dMemStall & ~wbhalt & side_channel_stall) | side_channel_done;
-assign MemWb_WrEn = (~wbhalt & side_channel_stall) | side_channel_done;
+assign IfId_WrEn = (~ImemStall & ~dMemStall & ~wbhalt & ~side_channel_stall) | side_channel_done_ff;
+assign IdEx_WrEn = (~dMemStall & ~wbhalt & ~side_channel_stall) | side_channel_done_ff;
+assign ExMem_WrEn = (~dMemStall & ~wbhalt & ~side_channel_stall) | side_channel_done_ff;
+assign MemWb_WrEn = (~wbhalt & ~side_channel_stall) | side_channel_done_ff;
+
+always @(posedge clk, negedge rst_n) begin
+	if (!rst_n)
+	  side_channel_done_ff <= 1'b0;
+	else 
+	  side_channel_done_ff <= side_channel_done;
+end
+
+always @(posedge clk, negedge rst_n) begin
+	if (!rst_n)
+	  side_channel_done_ff2 <= 1'b0;
+	else 
+	  side_channel_done_ff2 <= side_channel_done_ff;
+end
 
 // Fetch stage
 /*
@@ -93,7 +108,7 @@ If If_stage(.clk(clk), .rst_n(rst_n), .branch(branch), .target_pc(target_pc),
 */		
 If If_stage(.clk(clk), .rst_n(rst_n), .branch(branch), .target_pc(target_pc),
 		.instr_to_write(ImemData), .ImemWrite(ImemWrite), .cur_pc(If_pc), .instr(If_instr),
-		.ImemStall(ImemStall), .DmemStall(dMemStall), .addr_to_write(addr_to_write));
+		.ImemStall(ImemStall), .DmemStall(dMemStall | side_channel_stall), .addr_to_write(addr_to_write));
 		// TODO replace ImemWrite with a real SPART signal
 
 

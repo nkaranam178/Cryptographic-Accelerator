@@ -18,7 +18,7 @@ wire[8:0] imem_addr;
 // Pc stall signal
 assign ImemStall = (stall | stall2);
 // show instruction unless during a stall which shows captured value
-assign instr = ((DmemStall2 | DmemStall3) == 1'b1) ? stallReg : instrOut;
+assign instr = /*((DmemStall2 | DmemStall3) == 1'b1) ? stallReg : */instrOut;
 
 
 // Pc mux
