@@ -200,7 +200,7 @@ Spart_Control_TL spart(.clk(CLOCK2_50), .rst_n(SW[0]), .to_IMEM(to_IMEM),
    wire H_int, E_int, D_int;
    wire[127:0] plaintext;
    
-   wire[127:0] key;
+   wire[127:0] key, ciphertext;
    assign key = 128'h000102030405060708090a0b0c0d0e0f;
 
      
